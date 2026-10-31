@@ -107,6 +107,36 @@ vault.db-shm
 
 如果需要备份数据，建议先退出程序，再备份整个 `.hc_password` 目录。
 
+### 自定义数据目录
+
+支持通过启动参数修改数据库位置：
+
+```bash
+# 便携模式：数据库保存到 jar 同级 data 目录
+java -jar target/hc-password.jar --portable
+
+# 自定义目录：数据库保存到指定目录下的 vault.db
+java -jar target/hc-password.jar --data-dir "D:\HC密码数据"
+
+# 查看帮助
+java -jar target/hc-password.jar --help
+```
+
+便携模式下的数据库路径：
+
+```text
+<jar 所在目录>\data\vault.db
+```
+
+使用说明：
+
+- `--portable` 与 `--data-dir` 不能同时使用。
+- 启动时会检查数据目录是否可创建和写入；如果 jar 位于 `Program Files` 等只读目录，请改用默认目录或 `--data-dir`。
+- 便携模式启动时会显示数据库路径并提示备份，确认后才会继续启动。
+- 切换数据目录后不会自动迁移旧数据；如需继续使用原保险箱，请先退出程序，再手动复制整个数据目录。
+- 备份时请退出程序，并复制整个数据目录，而不是只复制 `vault.db`，以免遗漏 `vault.db-wal` 和 `vault.db-shm`。
+- 使用 Maven 启动时可通过 `-Dexec.args` 传递参数，例如 `mvn compile exec:java -Dexec.args="--portable"`。
+
 ## 数据库结构
 
 ### meta 表
@@ -206,6 +236,9 @@ hc_password/
     ├── main/java/org/example/
     │   ├── Main.java
     │   ├── AppController.java
+    │   ├── config/
+    │   │   ├── DataDirectory.java
+    │   │   └── LaunchOptions.java
     │   ├── db/
     │   │   ├── DatabaseManager.java
     │   │   └── EntryRepository.java
@@ -226,6 +259,9 @@ hc_password/
     │       ├── PasswordGeneratorDialog.java
     │       └── UiTheme.java
     └── test/java/org/example/
+        ├── config/
+        │   ├── DataDirectoryTest.java
+        │   └── LaunchOptionsTest.java
         ├── security/
         │   ├── CryptoServiceTest.java
         │   └── PasswordGeneratorTest.java
@@ -253,6 +289,8 @@ mvn test
 - 错误主密码校验
 - 修改主密码后的重新加密
 - 未解锁时拒绝访问数据
+- 启动参数解析和数据目录选择
+- 数据目录创建与路径校验
 
 ## 可扩展方向
 
